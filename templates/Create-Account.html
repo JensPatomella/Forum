@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+    <form method="post" action="/Log-In">
+          <label for="Username">Choose A Unique Username:</label>
+          <input type="text" name="Username">
+          <label for="Password">Choose A Password:</label>
+          <input type="password" name="Password">
+          <input type="submit" value="Save">
+    </form>
+{% endblock %}
