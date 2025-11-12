@@ -28,10 +28,13 @@ def create():
 def createdaccount():
     username = request.form.get('Username', '')
     password = request.form.get('Password', '')
+    print(username)
+    print(password)
 
-    mycursor.execute("SELECT * FROM users WHERE username = '{username}'")
-    if mycursor.rowcount > 0:
-        return redirect(url_for('create'))#problem typ här fixa
+    mycursor.execute("SELECT * FROM users WHERE username = (%s)", (username,))
+    existing_user = mycursor.fetchone()
+    if existing_user:
+        return redirect(url_for('create'))
     else:
         sql = "INSERT INTO users (username, password) VALUES (%s, %s)"
         val = (username, password)
@@ -43,17 +46,16 @@ def createdaccount():
 @app.route('/Signed-In', methods=['POST'])
 def signed():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        mycursor.execute("SELECT * FROM users WHERE username = '{username}' AND password = '{password}'")
-        users = mycursor.fetchone()
-        for user in users:
-            if user[1] == username and user[2] == password:
-                session['username'] = username
-                return redirect(url_for('signed'))
+        username = request.form.get('Username')
+        password = request.form.get('Password')
+        mycursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        existing_account = mycursor.fetchone()
+        print(existing_account)
+        if existing_account:
+            session['user'] = {'username': existing_account[1]}
+            return render_template("Signed-In.html")
         else:
-            return render_template("Log-In.html", error="Invalid credentials")
-    return render_template("Signed-In.html")
+            return redirect('/Log-In')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
