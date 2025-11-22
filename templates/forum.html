@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Forum</h1>
+
+  {% if session.user %}
+    <h2>Create a New Post</h2>
+    <form action="{{ url_for('new_post') }}" method="post">
+      <label for="title">Title:</label><br>
+      <input type="text" id="title" name="title" required><br><br>
+
+      <label for="topic">Topic:</label><br>
+      <input type="text" id="topic" name="topic" placeholder="Optional"><br><br>
+
+      <label for="content">Content:</label><br>
+      <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
+
+      <input type="submit" value="Post">
+    </form>
+  {% else %}
+    <p>Please <a href="{{ url_for('log') }}">log in</a> to create posts.</p>
+  {% endif %}
+
+  <h2>Posts</h2>
+  {% if posts %}
+    <ul>
+      {% for post in posts %}
+        <li>
+          <h3><a href="{{ url_for('view_post', post_id=post.id) }}">{{ post.title }}</a></h3>
+          <p>By {{ post.username }} on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+          <p>{{ post.content }}</p>
+          {% if post.topic %}
+            <p><em>Topic: {{ post.topic }}</em></p>
+          {% endif %}
+          <hr>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts yet.</p>
+  {% endif %}
+{% endblock %}
