@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="static/style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
     <title>{% block title %}Base{% endblock %}</title>
 </head>
-<body>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <footer>
-            <p>&copy; Copyright 2007 by <a href="http://domain.invalid/">you</a><br>
+<body{% if dark_mode %} class="dark-mode"{% endif %}>
+    <nav class="nav-bar">
+        <a href="{{ url_for('forum') }}" class="nav-link nav-link-left">Forum</a>
+        <a href="{{ url_for('logout') }}" class="nav-link nav-link-left">Log Out</a>
+        <a href="{{ url_for('toggle_dark_mode') }}" class="nav-link nav-link-right">
+            {% if dark_mode %}Light Mode{% else %}Dark Mode{% endif %}
+        </a>
+    </nav>
+    <main id="content" class="main-content">{% block content %}{% endblock %}</main>
+    <footer class="footer">
+        <p>&copy; Copyright 2007 by <a href="http://domain.invalid/" class="footer-link">you</a></p>
     </footer>
-        
 </body>
 </html>

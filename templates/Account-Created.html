@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Signed In{% endblock %}
-{% block head %}
-{% endblock %}
+{% block title %}Account Created{% endblock %}
+
 {% block content %}
-    <h1>your account has been created!</h1>
-    <a href="/Log-In">Log in to your account</a>
+  <div class="account-created-message">
+    <h1>Your account has been created!</h1>
+    <a href="{{ url_for('log') }}" class="submit-button">Log in to your account</a>
+  </div>
 {% endblock %}

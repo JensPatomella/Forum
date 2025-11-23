@@ -1,4 +1,6 @@
 from flask import Flask, render_template, session, redirect, url_for, request, flash
+import hashlib
+from flask import Flask, render_template, session, redirect, url_for, request, flash
 import mysql.connector
 from datetime import datetime
 
@@ -52,8 +54,9 @@ def createdaccount():
     if existing_user:
         return redirect(url_for('create'))
     else:
+        hashed_password = hashlib.sha1(password.encode('utf-8')).hexdigest()
         sql = "INSERT INTO users (username, password) VALUES (%s, %s)"
-        val = (username, password)
+        val = (username, hashed_password)
         mycursor.execute(sql, val)
         mydb.commit()
         return render_template("Account-Created.html")
@@ -63,9 +66,9 @@ def signed():
     if request.method == 'POST':
         username = request.form.get('Username')
         password = request.form.get('Password')
-        mycursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        hashed_password = hashlib.sha1(password.encode('utf-8')).hexdigest()
+        mycursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, hashed_password))
         existing_account = mycursor.fetchone()
-        print(existing_account)
         if existing_account:
             session['user'] = {'id': existing_account[0], 'username': existing_account[1]}
             return redirect(url_for('forum'))
@@ -74,13 +77,29 @@ def signed():
 
 @app.route('/forum')
 def forum():
+    selected_topic = request.args.get('topic', None)
     mycursor.execute("""
-    SELECT posts.id, posts.title, posts.content, posts.topic, posts.created_at, users.username 
-    FROM posts 
-    JOIN users ON posts.user_id = users.id
-    WHERE posts.parent_post_id IS NULL
-    ORDER BY posts.created_at DESC
+        SELECT DISTINCT topic FROM posts WHERE topic IS NOT NULL AND topic != ''
     """)
+    topics = [row[0] for row in mycursor.fetchall()]
+
+    if selected_topic and selected_topic != "All":
+        mycursor.execute("""
+        SELECT posts.id, posts.title, posts.content, posts.topic, posts.created_at, users.username 
+        FROM posts 
+        JOIN users ON posts.user_id = users.id
+        WHERE posts.parent_post_id IS NULL AND posts.topic = %s
+        ORDER BY posts.created_at DESC
+        """, (selected_topic,))
+    else:
+        mycursor.execute("""
+        SELECT posts.id, posts.title, posts.content, posts.topic, posts.created_at, users.username 
+        FROM posts 
+        JOIN users ON posts.user_id = users.id
+        WHERE posts.parent_post_id IS NULL
+        ORDER BY posts.created_at DESC
+        """)
+
     posts = mycursor.fetchall()
     posts_list = []
     for post in posts:
@@ -92,7 +111,9 @@ def forum():
             'created_at': post[4],
             'username': post[5]
         })
-    return render_template('forum.html', posts=posts_list)
+
+    dark_mode = session.get('dark_mode', False)
+    return render_template('forum.html', posts=posts_list, topics=topics, selected_topic=selected_topic, dark_mode=dark_mode)
 
 @app.route('/forum/new', methods=['GET', 'POST'])
 def new_post():
@@ -149,7 +170,8 @@ def view_post(post_id):
             'created_at': comment[4],
             'username': comment[5]
         })
-    return render_template('post.html', post=main_post, comments=comments_list)
+    dark_mode = session.get('dark_mode', False)
+    return render_template('post.html', post=main_post, comments=comments_list, dark_mode=dark_mode)
 
 @app.route('/post/<int:post_id>/comment', methods=['POST'])
 def add_comment(post_id):
@@ -164,6 +186,18 @@ def add_comment(post_id):
     mydb.commit()
     return redirect(url_for('view_post', post_id=post_id))
 
+
+@app.route('/toggle-dark-mode')
+def toggle_dark_mode():
+    current = session.get('dark_mode', False)
+    session['dark_mode'] = not current
+    referrer = request.referrer or url_for('forum')
+    return redirect(referrer)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

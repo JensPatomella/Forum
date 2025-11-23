@@ -1,20 +1,25 @@
 {% extends "base.html" %}
-
+{% block title %}{{ post.title }}{% endblock %}
 {% block content %}
-  <a href="/forum">Back to main page</a>
-  <h1>{{ post.title }}</h1>
-  <p>By {{ post.username }} on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-  <p>{{ post.content }}</p>
-  {% if post.topic %}
-    <p><em>Topic: {{ post.topic }}</em></p>
-  {% endif %}
+  <a href="{{ url_for('forum') }}" class="back-link">Back to main page</a>
+
+  <ul class="post-list">
+    <li class="post-item">
+      <h1>{{ post.title }}</h1>
+      <p>By {{ post.username }} on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+      <p>{{ post.content }}</p>
+      {% if post.topic %}
+        <p><em>Topic: {{ post.topic }}</em></p>
+      {% endif %}
+    </li>
+  </ul>
 
   <hr>
   <h2>Comments</h2>
   {% if comments %}
-    <ul>
+    <ul class="comments-list">
       {% for comment in comments %}
-        <li>
+        <li class="comment-item">
           <h4>{{ comment.title or "Comment" }}</h4>
           <p>By {{ comment.username }} on {{ comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
           <p>{{ comment.content }}</p>
@@ -28,14 +33,14 @@
   {% if session.user %}
     <hr>
     <h3>Add a Comment</h3>
-    <form action="{{ url_for('add_comment', post_id=post.id) }}" method="post">
+    <form action="{{ url_for('add_comment', post_id=post.id) }}" method="post" class="comment-form">
       <label for="title">Title (optional):</label><br>
-      <input type="text" id="title" name="title"><br><br>
+      <input type="text" id="title" name="title" class="form-input"><br><br>
 
       <label for="content">Comment:</label><br>
-      <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
+      <textarea id="content" name="content" rows="4" cols="50" required class="form-textarea"></textarea><br><br>
 
-      <input type="submit" value="Add Comment">
+      <input type="submit" value="Add Comment" class="submit-button">
     </form>
   {% else %}
     <p>Please <a href="{{ url_for('log') }}">log in</a> to add comments.</p>

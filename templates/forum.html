@@ -1,21 +1,32 @@
 {% extends "base.html" %}
-
+{% block title %}Forum{% endblock %}
 {% block content %}
   <h1>Forum</h1>
 
+  <form method="get" action="{{ url_for('forum') }}" class="topic-filter-form">
+    <label for="topic">Filter by Topic:</label>
+    <select name="topic" id="topic" onchange="this.form.submit()">
+      <option value="All" {% if selected_topic == None or selected_topic == 'All' %}selected{% endif %}>All Posts</option>
+      {% for topic in topics %}
+      <option value="{{ topic }}" {% if selected_topic == topic %}selected{% endif %}>{{ topic }}</option>
+      {% endfor %}
+    </select>
+    <noscript><input type="submit" value="Filter" class="submit-button"></noscript>
+  </form>
+
   {% if session.user %}
     <h2>Create a New Post</h2>
-    <form action="{{ url_for('new_post') }}" method="post">
-      <label for="title">Title:</label><br>
-      <input type="text" id="title" name="title" required><br><br>
+    <form action="{{ url_for('new_post') }}" method="post" class="post-form">
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required>
 
-      <label for="topic">Topic:</label><br>
-      <input type="text" id="topic" name="topic" placeholder="Optional"><br><br>
+      <label for="topic">Topic:</label>
+      <input type="text" id="topic" name="topic" required>
 
-      <label for="content">Content:</label><br>
-      <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
+      <label for="content">Content:</label>
+      <textarea id="content" name="content" rows="4" required></textarea>
 
-      <input type="submit" value="Post">
+      <input type="submit" value="Post" class="submit-button">
     </form>
   {% else %}
     <p>Please <a href="{{ url_for('log') }}">log in</a> to create posts.</p>
@@ -23,9 +34,9 @@
 
   <h2>Posts</h2>
   {% if posts %}
-    <ul>
+    <ul class="post-list">
       {% for post in posts %}
-        <li>
+        <li class="post-item">
           <h3><a href="{{ url_for('view_post', post_id=post.id) }}">{{ post.title }}</a></h3>
           <p>By {{ post.username }} on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
           <p>{{ post.content }}</p>
